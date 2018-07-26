@@ -1,4 +1,4 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 /* For browserify to create a build for the browser */
 window.DynamoDbDataTypes = require('./lib/dynamodb-data-types');
 
@@ -28,6 +28,7 @@ function isnumber(el) {
 }
 
 function isstring(el) {
+  if (el === '') return false;
   return typeof el === 'string' || el instanceof String;
 }
 
@@ -63,7 +64,7 @@ function detectType(val) {
 
   if (val === null)
     return 'NULL';
-  
+
   if (typeof val === 'boolean')
     return 'BOOL';
 
@@ -75,9 +76,9 @@ function detectType(val) {
 function explicit_type(opts, key) {
 
   var type_specified = typeof opts === 'object' &&
-        typeof opts.types === 'object' &&
-        typeof key === 'string' &&
-        typeof opts.types[key] === 'string';
+    typeof opts.types === 'object' &&
+    typeof key === 'string' &&
+    typeof opts.types[key] === 'string';
 
   if (!type_specified)
     return;
@@ -103,8 +104,8 @@ function getType(val, opts, key) {
 }
 
 function eachToString(arr) {
-  return arr.map(function(v) { 
-    return v.toString(); 
+  return arr.map(function (v) {
+    return v.toString();
   });
 }
 
@@ -114,18 +115,18 @@ function eachToString(arr) {
  * @return {Object} DynamoDB AttributeValue.
  */
 function wrap1(val, opts, key) {
-  switch(getType(val, opts, key)) {
-  case 'B': return {'B': val};
-  case 'BS': return {'BS': val};
-  case 'N': return {'N': val.toString()};
-  case 'NS': return {'NS': eachToString(val)};
-  case 'S': return {'S': val.toString()};
-  case 'SS': return {'SS': eachToString(val)};
-  case 'BOOL': return {'BOOL': val ? true: false};
-  case 'L': return {'L': val.map(function(obj){ return wrap1(obj, opts); })};
-  case 'M': return {'M': wrap(val, opts)};
-  case 'NULL': return {'NULL': true};
-  default: return;
+  switch (getType(val, opts, key)) {
+    case 'B': return { 'B': val };
+    case 'BS': return { 'BS': val };
+    case 'N': return { 'N': val.toString() };
+    case 'NS': return { 'NS': eachToString(val) };
+    case 'S': return { 'S': val.toString() };
+    case 'SS': return { 'SS': eachToString(val) };
+    case 'BOOL': return { 'BOOL': val ? true : false };
+    case 'L': return { 'L': val.map(function (obj) { return wrap1(obj, opts); }) };
+    case 'M': return { 'M': wrap(val, opts) };
+    case 'NULL': return { 'NULL': true };
+    default: return;
   }
 }
 
@@ -137,7 +138,7 @@ function wrap1(val, opts, key) {
 function wrap(obj, opts) {
   var result = {};
   for (var key in obj) {
-    if(obj.hasOwnProperty(key)) {
+    if (obj.hasOwnProperty(key)) {
       var wrapped = wrap1(obj[key], opts, key);
       if (typeof wrapped !== 'undefined')
         result[key] = wrapped;
@@ -150,13 +151,13 @@ var unwrapFns = {
   'B': undefined,
   'BS': undefined,
   'N': function (o) { return Number(o); },
-  'NS':function (arr) { return arr.map(function(o) {return Number(o);}); },
+  'NS': function (arr) { return arr.map(function (o) { return Number(o); }); },
   'S': undefined,
   'SS': undefined,
   'BOOL': undefined,
-  'L': function(val) { return val.map(unwrap1); },
+  'L': function (val) { return val.map(unwrap1); },
   'M': function (val) { return unwrap(val); },
-  'NULL': function() { return null; }
+  'NULL': function () { return null; }
 };
 
 function typeExists(type) {
@@ -188,9 +189,9 @@ function unwrap1(dynamoData) {
 function unwrap(attrVal) {
   var result = {};
   for (var key in attrVal) {
-    if(attrVal.hasOwnProperty(key)) {
+    if (attrVal.hasOwnProperty(key)) {
       var value = attrVal[key];
-      if (value !== null && typeof value !== 'undefined') 
+      if (value !== null && typeof value !== 'undefined')
         result[key] = unwrap1(attrVal[key]);
     }
   }
